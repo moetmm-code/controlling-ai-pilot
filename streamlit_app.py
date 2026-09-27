@@ -50,7 +50,7 @@ for message in st.session_state.messages:
 
 user_text = st.chat_input("Type your message here")
 if user_text:
-　　try:
+    try:
 　　　　　api_key = st.secrets["GEMINI_API_KEY"]
     except (KeyError, FileNotFoundError):
         st.error("Researcher setup is incomplete: API key is missing.")
