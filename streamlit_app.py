@@ -49,21 +49,21 @@ for message in st.session_state.messages:
         st.write(message["content"])
 
 user_text = st.chat_input("Type your message here")
+
 if user_text:
     try:
-　　　　　api_key = st.secrets["GEMINI_API_KEY"]
+        api_key = st.secrets["GEMINI_API_KEY"]
     except (KeyError, FileNotFoundError):
         st.error("Researcher setup is incomplete: API key is missing.")
         st.stop()
 
-        history = [
-            types.Content(
-                role="user" if m["role"] == "user" else "model",
-                parts=[types.Part(text=m["content"])]
-            )
-            for m in st.session_state.messages
-        ]
-
+    history = [
+        types.Content(
+            role="user" if m["role"] == "user" else "model",
+            parts=[types.Part(text=m["content"])]
+        )
+        for m in st.session_state.messages
+    ]
         with st.spinner("AI is responding..."):
             try:
                     with genai.Client(api_key=api_key) as client:
