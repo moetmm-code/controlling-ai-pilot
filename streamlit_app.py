@@ -64,7 +64,7 @@ if user_text:
         )
         for m in st.session_state.messages
     ]
-        with st.spinner("AI is responding..."):
+    with st.spinner("AI is responding..."):
             try:
                     with genai.Client(api_key=api_key) as client:
                         response = client.models.generate_content(
