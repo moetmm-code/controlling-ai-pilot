@@ -64,10 +64,11 @@ if user_text:
         )
         for m in st.session_state.messages
     ]
+
     with st.spinner("AI is responding..."):
-            try:
-                    with genai.Client(api_key=api_key) as client:
-                        response = client.models.generate_content(
+        try:
+            with genai.Client(api_key=api_key) as client:
+                response = client.models.generate_content(
                     model="gemini-3.8-flash",
                     contents=history + [
                         types.Content(
@@ -78,16 +79,18 @@ if user_text:
                     config=types.GenerateContentConfig(
                         system_instruction=CONTROLLING_PROMPT
                     ),
-                    )
-                        answer = response.text
-                        if not answer:
-                            raise ValueError("The AI returned no text.")        
-            except Exception as e:
-                st.error("Could not get a response.")
-                st.exception(e)
-                st.stop()
+                )
 
-       st.session_state.messages.extend([
+            answer = response.text
+            if not answer:
+                raise ValueError("The AI returned no text.")
+
+        except Exception as e:
+            st.error("Could not get a response.")
+            st.exception(e)
+            st.stop()
+
+    st.session_state.messages.extend([
         {"role": "user", "content": user_text},
         {"role": "assistant", "content": answer}
     ])
