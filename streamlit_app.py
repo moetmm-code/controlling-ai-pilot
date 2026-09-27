@@ -84,8 +84,9 @@ else:
                 answer = response.text
                 if not answer:
                     raise ValueError("The AI returned no text.")
-            except Exception:
-                st.error("Could not get a response. Please try again; your message was not counted.")
+            except Exception as e:
+                st.error("Could not get a response.")
+                st.exception(e)
                 st.stop()
 
         st.session_state.messages.extend([
