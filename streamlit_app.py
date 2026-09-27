@@ -87,8 +87,8 @@ if user_text:
                 st.exception(e)
                 st.stop()
 
-        st.session_state.messages.extend([
-            {"role": "user", "content": user_text},
-            {"role": "assistant", "content": answer}
-        ])
-        st.rerun()
+       st.session_state.messages.extend([
+        {"role": "user", "content": user_text},
+        {"role": "assistant", "content": answer}
+    ])
+    st.rerun()
