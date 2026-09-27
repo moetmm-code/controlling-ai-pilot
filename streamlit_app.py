@@ -44,13 +44,12 @@ Keep the conversation natural and appropriate for university students.
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
-   　　　　 user_text = st.chat_input("Type your message here")
-    if user_text:
+user_text = st.chat_input("Type your message here")
+ if user_text:
         try:
             api_key = st.secrets["GEMINI_API_KEY"]
         except (KeyError, FileNotFoundError):
