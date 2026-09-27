@@ -74,7 +74,7 @@ else:
             try:
                     with genai.Client(api_key=api_key) as client:
                         response = client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model="gemini-3.8-flash",
                     contents=history + [
                         types.Content(
                             role="user",
