@@ -49,12 +49,12 @@ for message in st.session_state.messages:
         st.write(message["content"])
 
 user_text = st.chat_input("Type your message here")
- if user_text:
-        try:
-            api_key = st.secrets["GEMINI_API_KEY"]
-        except (KeyError, FileNotFoundError):
-            st.error("Researcher setup is incomplete: API key is missing.")
-            st.stop()
+if user_text:
+　　try:
+　　　　　api_key = st.secrets["GEMINI_API_KEY"]
+    except (KeyError, FileNotFoundError):
+        st.error("Researcher setup is incomplete: API key is missing.")
+        st.stop()
 
         history = [
             types.Content(
