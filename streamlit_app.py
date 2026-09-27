@@ -72,18 +72,22 @@ else:
 
         with st.spinner("AI is responding..."):
             try:
-                response = genai.Client(api_key=api_key).models.generate_content(
+                    with genai.Client(api_key=api_key) as client:
+                        response = client.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=history + [
-                        types.Content(role="user", parts=[types.Part(text=user_text)])
+                        types.Content(
+                            role="user",
+                            parts=[types.Part(text=user_text)]
+                        )
                     ],
                     config=types.GenerateContentConfig(
                         system_instruction=CONTROLLING_PROMPT
                     ),
-                )
-                answer = response.text
-                if not answer:
-                    raise ValueError("The AI returned no text.")
+                    )
+                        answer = response.text
+                        if not answer:
+                            raise ValueError("The AI returned no text.")        
             except Exception as e:
                 st.error("Could not get a response.")
                 st.exception(e)
