@@ -4,7 +4,7 @@ from google.genai import types
 
 st.set_page_config(page_title="Research Chat", page_icon="💬")
 st.title("Research Chat")
-st.caption("Please have a conversation with the AI. Complete 10 exchanges before proceeding to the questionnaire.")
+st.caption("Please have a conversation with the AI.")
 
 CONTROLLING_PROMPT = """
 You are a controlling, task-oriented AI providing guidance about academic stress, time management, and everyday concerns, including minor interpersonal problems.
@@ -44,17 +44,12 @@ Keep the conversation natural and appropriate for university students.
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-n = sum(message["role"] == "assistant" for message in st.session_state.messages)
-st.progress(min(n / 10, 1.0), text=f"Completed exchanges: {n}/10")
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
-if n >= 10:
-    st.success("You have completed 10 exchanges. Please proceed to the questionnaire using the link provided by the researcher.")
-else:
-    user_text = st.chat_input("Type your message here")
+   　　　　 user_text = st.chat_input("Type your message here")
     if user_text:
         try:
             api_key = st.secrets["GEMINI_API_KEY"]
