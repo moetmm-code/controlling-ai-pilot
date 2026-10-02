@@ -194,7 +194,7 @@ if s is None:
             st.stop()
 
     st.write(
-        "กรุณาสนทนากับ AI เป็นภาษาไทย "
+        "กรุณาสนทนากับ AI "
         "คุณสามารถยุติการสนทนาได้ทุกเมื่อ "
         "และระบบจะสิ้นสุดการส่งข้อความใหม่เมื่อครบ 30 นาที"
     )
@@ -369,9 +369,7 @@ def chat_screen():
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
-    text = st.chat_input(
-        "พิมพ์ข้อความภาษาไทยที่นี่"
-    )
+    text = st.chat_input("พิมพ์ข้อความที่นี่")
 
     if text:
         # Reject new messages after 30 minutes on the server.
@@ -421,11 +419,7 @@ def chat_screen():
                             )
                         ],
                         config=types.GenerateContentConfig(
-                            system_instruction=(
-                                CONTROLLING_PROMPT
-                                + "\nRespond in Thai throughout "
-                                "this conversation."
-                            ),
+                            system_instruction=CONTROLLING_PROMPT,
                         ),
                     )
 
