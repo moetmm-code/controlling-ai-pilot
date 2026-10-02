@@ -90,6 +90,7 @@ s = st.session_state.study
 def elapsed():
     if s["ended_seconds"] is not None:
         return s["ended_seconds"]
+
     return min(
         LIMIT,
         max(0.0, time.monotonic() - s["start_clock"]),
@@ -97,7 +98,7 @@ def elapsed():
 
 
 def payload():
-    # Send research metadata only. Never send conversation text.
+    # Research metadata only: no conversation text or API key.
     return {
         "schema_version": 1,
         "session_id": s["session_id"],
@@ -161,11 +162,15 @@ def finish(reason):
 st.title("Research Chat")
 
 if TEST_MODE:
-    st.warning("โหมดทดสอบ: ไม่มีการส่งหรือบันทึกข้อมูลการวิจัย")
+    st.warning(
+        "โหมดทดสอบ: ไม่มีการส่งหรือบันทึกข้อมูลการวิจัย"
+    )
 
 if s is None:
     if not setting("GEMINI_API_KEY"):
-        st.error("Researcher setup: GEMINI_API_KEY is missing.")
+        st.error(
+            "Researcher setup: GEMINI_API_KEY is missing."
+        )
         st.stop()
 
     if not TEST_MODE:
@@ -199,24 +204,37 @@ if s is None:
             "กรุณากรอกหมายเลขผู้เข้าร่วมที่ผู้วิจัยแจ้งให้ทราบ "
             "โดยใช้หมายเลขเดียวกับเอกสารยินยอม"
         )
+
+        st.caption(
+            "กรุณาใช้ตัวเลข 0–9 แบบครึ่งความกว้าง (เช่น 001) "
+            "โดยไม่เว้นวรรคและไม่ใช้ตัวเลขไทย"
+        )
+
         code = st.text_input(
             "หมายเลขผู้เข้าร่วมที่ได้รับจากผู้วิจัย",
-            placeholder="กรอกหมายเลขที่ได้รับ",
+            placeholder="เช่น 001",
         )
+
         begin = st.form_submit_button("เริ่มการสนทนา")
 
     if begin:
         code = code.strip()
 
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", code):
-            st.error("กรุณากรอกหมายเลขที่ผู้วิจัยแจ้งให้ทราบ")
+            st.error(
+                "กรุณากรอกหมายเลขที่ผู้วิจัยแจ้งให้ทราบ "
+                "โดยใช้ตัวเลข 0–9 แบบครึ่งความกว้าง "
+                "และไม่เว้นวรรค (เช่น 001)"
+            )
 
         else:
             st.session_state.study = {
                 "session_id": str(uuid.uuid4()),
                 "code": code,
                 "start_clock": time.monotonic(),
-                "started_at": datetime.now(timezone.utc).isoformat(),
+                "started_at": (
+                    datetime.now(timezone.utc).isoformat()
+                ),
                 "count": 0,
                 "messages": [],
                 "answers": [],
@@ -226,6 +244,7 @@ if s is None:
                 "save_ok": False,
                 "revision": 0,
             }
+
             st.rerun()
 
     st.stop()
@@ -245,6 +264,7 @@ def chat_screen():
         "เวลาที่ใช้สนทนา",
         f"{seconds // 60:02d}:{seconds % 60:02d}",
     )
+
     right.metric(
         "จำนวนข้อความที่คุณส่ง",
         s["count"],
@@ -253,7 +273,8 @@ def chat_screen():
     if not TEST_MODE and not s["save_ok"]:
         st.warning(
             "ยังส่งข้อมูลการวิจัยไม่สำเร็จ "
-            "ระบบจะลองอีกครั้ง กรุณาอย่าปิดหน้านี้ "
+            "ระบบจะลองอีกครั้ง "
+            "กรุณาอย่าปิดหน้านี้ "
             "และแจ้งผู้วิจัยหากยังพบข้อความนี้"
         )
 
@@ -271,10 +292,13 @@ def chat_screen():
             )
         else:
             st.info(
-                "Researcher setup: POST_FORM_URL is not configured."
+                "Researcher setup: "
+                "POST_FORM_URL is not configured."
             )
 
-        st.subheader("คำอธิบายหลังการเข้าร่วมการวิจัย")
+        st.subheader(
+            "คำอธิบายหลังการเข้าร่วมการวิจัย"
+        )
 
         if DEBRIEF:
             st.write(DEBRIEF)
@@ -290,7 +314,7 @@ def chat_screen():
         finish("participant_stopped")
         st.rerun()
 
-    # Show the conversation BEFORE the continuation question.
+    # Show conversation first, then the continuation question.
     for message in s["messages"]:
         with st.chat_message(message["role"]):
             st.write(message["content"])
@@ -309,22 +333,21 @@ def chat_screen():
         None,
     )
 
-    unanswered = any(
-        a["value"] is None
-        for a in s["answers"]
-    )
-
-    if due is not None and not unanswered:
+    if due is not None and not any(
+        a["value"] is None for a in s["answers"]
+    ):
         st.toast(
             "กรุณาตอบคำถามเกี่ยวกับการสนทนาต่อ",
             icon="📋",
         )
+
         s["answers"].append({
             "scheduled_minute": due,
             "shown_at_seconds": round(elapsed(), 1),
             "answered_at_seconds": None,
             "value": None,
         })
+
         save(force=True)
 
     pending = next(
@@ -336,11 +359,13 @@ def chat_screen():
         None,
     )
 
-    # The question appears after the latest chat message.
     if pending is not None:
         minute = pending["scheduled_minute"]
 
-        st.info("คุณต้องการสนทนากับ AI ต่อหรือไม่?")
+        st.info(
+            "คุณต้องการสนทนากับ AI ต่อหรือไม่?"
+        )
+
         st.caption(
             "ไม่ว่าคุณจะเลือกคำตอบใด "
             "ระบบจะไม่ยุติการสนทนาโดยอัตโนมัติ"
@@ -366,7 +391,11 @@ def chat_screen():
 
             else:
                 pending["value"] = OPTIONS.index(choice) + 1
-                pending["answered_at_seconds"] = round(elapsed(), 1)
+
+                pending["answered_at_seconds"] = round(
+                    elapsed(), 1
+                )
+
                 save(force=True)
                 st.rerun()
 
@@ -381,8 +410,14 @@ def chat_screen():
 
         history = [
             types.Content(
-                role="user" if m["role"] == "user" else "model",
-                parts=[types.Part(text=m["content"])],
+                role=(
+                    "user"
+                    if m["role"] == "user"
+                    else "model"
+                ),
+                parts=[
+                    types.Part(text=m["content"])
+                ],
             )
             for m in s["messages"]
         ]
@@ -398,14 +433,18 @@ def chat_screen():
             with st.spinner("AI กำลังตอบ..."):
                 with genai.Client(
                     api_key=setting("GEMINI_API_KEY"),
-                    http_options=types.HttpOptions(timeout=45000),
+                    http_options=types.HttpOptions(
+                        timeout=45000
+                    ),
                 ) as client:
                     response = client.models.generate_content(
                         model=MODEL,
                         contents=history + [
                             types.Content(
                                 role="user",
-                                parts=[types.Part(text=text)],
+                                parts=[
+                                    types.Part(text=text)
+                                ],
                             )
                         ],
                         config=types.GenerateContentConfig(
@@ -427,7 +466,8 @@ def chat_screen():
         except Exception:
             st.warning(
                 "ไม่สามารถรับคำตอบจาก AI ได้ในขณะนี้ "
-                "คุณสามารถส่งข้อความใหม่หรือยุติการสนทนาได้"
+                "คุณสามารถส่งข้อความใหม่"
+                "หรือยุติการสนทนาได้"
             )
 
             if elapsed() < LIMIT:
