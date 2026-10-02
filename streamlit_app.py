@@ -98,7 +98,7 @@ def elapsed():
 
 
 def payload():
-    # Research metadata only: no conversation text or API key.
+    # Conversation content is not included.
     return {
         "schema_version": 1,
         "session_id": s["session_id"],
@@ -168,9 +168,7 @@ if TEST_MODE:
 
 if s is None:
     if not setting("GEMINI_API_KEY"):
-        st.error(
-            "Researcher setup: GEMINI_API_KEY is missing."
-        )
+        st.error("Researcher setup: GEMINI_API_KEY is missing.")
         st.stop()
 
     if not TEST_MODE:
@@ -188,8 +186,7 @@ if s is None:
 
         if missing:
             st.error(
-                "Researcher setup required: "
-                + ", ".join(missing)
+                "Researcher setup required: " + ", ".join(missing)
             )
             st.stop()
 
@@ -204,7 +201,6 @@ if s is None:
             "กรุณากรอกหมายเลขผู้เข้าร่วมที่ผู้วิจัยแจ้งให้ทราบ "
             "โดยใช้หมายเลขเดียวกับเอกสารยินยอม"
         )
-
         st.caption(
             "กรุณาใช้ตัวเลข 0–9 แบบครึ่งความกว้าง (เช่น 001) "
             "โดยไม่เว้นวรรคและไม่ใช้ตัวเลขไทย"
@@ -214,7 +210,6 @@ if s is None:
             "หมายเลขผู้เข้าร่วมที่ได้รับจากผู้วิจัย",
             placeholder="เช่น 001",
         )
-
         begin = st.form_submit_button("เริ่มการสนทนา")
 
     if begin:
@@ -226,15 +221,12 @@ if s is None:
                 "โดยใช้ตัวเลข 0–9 แบบครึ่งความกว้าง "
                 "และไม่เว้นวรรค (เช่น 001)"
             )
-
         else:
             st.session_state.study = {
                 "session_id": str(uuid.uuid4()),
                 "code": code,
                 "start_clock": time.monotonic(),
-                "started_at": (
-                    datetime.now(timezone.utc).isoformat()
-                ),
+                "started_at": datetime.now(timezone.utc).isoformat(),
                 "count": 0,
                 "messages": [],
                 "answers": [],
@@ -244,7 +236,6 @@ if s is None:
                 "save_ok": False,
                 "revision": 0,
             }
-
             st.rerun()
 
     st.stop()
@@ -264,7 +255,6 @@ def chat_screen():
         "เวลาที่ใช้สนทนา",
         f"{seconds // 60:02d}:{seconds % 60:02d}",
     )
-
     right.metric(
         "จำนวนข้อความที่คุณส่ง",
         s["count"],
@@ -292,29 +282,20 @@ def chat_screen():
             )
         else:
             st.info(
-                "Researcher setup: "
-                "POST_FORM_URL is not configured."
+                "Researcher setup: POST_FORM_URL is not configured."
             )
 
-        st.subheader(
-            "คำอธิบายหลังการเข้าร่วมการวิจัย"
-        )
+        st.subheader("คำอธิบายหลังการเข้าร่วมการวิจัย")
 
         if DEBRIEF:
             st.write(DEBRIEF)
         else:
             st.info(
-                "Researcher setup: "
-                "the debriefing text is not configured."
+                "Researcher setup: the debriefing text is not configured."
             )
 
         return
 
-    if st.button("ยุติการสนทนาและไปยังแบบสอบถาม"):
-        finish("participant_stopped")
-        st.rerun()
-
-    # Show conversation first, then the continuation question.
     for message in s["messages"]:
         with st.chat_message(message["role"]):
             st.write(message["content"])
@@ -347,7 +328,6 @@ def chat_screen():
             "answered_at_seconds": None,
             "value": None,
         })
-
         save(force=True)
 
     pending = next(
@@ -362,10 +342,7 @@ def chat_screen():
     if pending is not None:
         minute = pending["scheduled_minute"]
 
-        st.info(
-            "คุณต้องการสนทนากับ AI ต่อหรือไม่?"
-        )
-
+        st.info("คุณต้องการสนทนากับ AI ต่อหรือไม่?")
         st.caption(
             "ไม่ว่าคุณจะเลือกคำตอบใด "
             "ระบบจะไม่ยุติการสนทนาโดยอัตโนมัติ"
@@ -391,13 +368,28 @@ def chat_screen():
 
             else:
                 pending["value"] = OPTIONS.index(choice) + 1
-
                 pending["answered_at_seconds"] = round(
                     elapsed(), 1
                 )
-
                 save(force=True)
                 st.rerun()
+
+    st.divider()
+
+    if st.button(
+        "🛑 จบการสนทนาและไปยังแบบสอบถาม ②",
+        key="end_conversation",
+        type="primary",
+        use_container_width=True,
+    ):
+        finish("participant_stopped")
+        st.rerun()
+
+    st.caption(
+        "หากต้องการจบการสนทนา กรุณากดปุ่มด้านบน "
+        "ก่อนปิดหน้านี้ เพื่อบันทึกเวลาสิ้นสุดการสนทนา "
+        "จากนั้นกดปุ่มไปยังแบบสอบถามในหน้าถัดไป"
+    )
 
     text = st.chat_input("พิมพ์ข้อความที่นี่")
 
